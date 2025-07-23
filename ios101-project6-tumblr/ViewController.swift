@@ -11,13 +11,34 @@ class ViewController: UIViewController, UITableViewDataSource {
     @IBOutlet weak var tableView: UITableView!
 
     var posts: [Post] = []
+    let refreshCtrl = UIRefreshControl()
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         tableView.dataSource = self
         fetchPosts()
-
+        
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
+        refreshCtrl.addTarget(self, action: #selector(refreshPosts), for: .valueChanged)
+        tableView.refreshControl = refreshCtrl
+    }
+    
+    @objc func refreshPosts() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0){
+            self.fetchPosts()
+        }
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        guard let selectedIndexPath = tableView.indexPathForSelectedRow else { return }
+        
+        let selectedPost = posts[selectedIndexPath.row]
+        
+        guard let detailViewController = segue.destination as? DetailViewController else { return }
+        
+        detailViewController.post = selectedPost
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
